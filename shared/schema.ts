@@ -69,10 +69,32 @@ export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   content: text("content"),
   imageUrl: varchar("image_url"),
-  channelId: varchar("channel_id").notNull(),
+  channelId: varchar("channel_id"), // nullable for DMs
   userId: varchar("user_id").notNull(),
+  recipientId: varchar("recipient_id"), // for direct messages
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Direct Message Conversations
+export const dmConversations = pgTable("dm_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  user1Id: varchar("user1_id").notNull(),
+  user2Id: varchar("user2_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Server Invites
+export const serverInvites = pgTable("server_invites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 10 }).notNull().unique(),
+  serverId: varchar("server_id").notNull(),
+  createdById: varchar("created_by_id").notNull(),
+  maxUses: varchar("max_uses"), // null for unlimited
+  usedCount: varchar("used_count").default("0"),
+  expiresAt: timestamp("expires_at"), // null for no expiration
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations
@@ -119,6 +141,32 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.userId],
     references: [users.id],
   }),
+  recipient: one(users, {
+    fields: [messages.recipientId],
+    references: [users.id],
+  }),
+}));
+
+export const dmConversationsRelations = relations(dmConversations, ({ one, many }) => ({
+  user1: one(users, {
+    fields: [dmConversations.user1Id],
+    references: [users.id],
+  }),
+  user2: one(users, {
+    fields: [dmConversations.user2Id],
+    references: [users.id],
+  }),
+}));
+
+export const serverInvitesRelations = relations(serverInvites, ({ one }) => ({
+  server: one(servers, {
+    fields: [serverInvites.serverId],
+    references: [servers.id],
+  }),
+  createdBy: one(users, {
+    fields: [serverInvites.createdById],
+    references: [users.id],
+  }),
 }));
 
 // Insert schemas
@@ -140,6 +188,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   updatedAt: true,
 });
 
+export const insertServerInviteSchema = createInsertSchema(serverInvites).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -150,12 +203,21 @@ export type InsertChannel = z.infer<typeof insertChannelSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ServerMember = typeof serverMembers.$inferSelect;
+export type DmConversation = typeof dmConversations.$inferSelect;
+export type ServerInvite = typeof serverInvites.$inferSelect;
+export type InsertServerInvite = z.infer<typeof insertServerInviteSchema>;
 
-// Extended types with relations
+// Extended types with relations  
 export type ServerWithChannels = Server & {
   channels: Channel[];
 };
 
 export type MessageWithUser = Message & {
   user: User;
+  recipient?: User;
+};
+
+export type DmConversationWithUser = DmConversation & {
+  otherUser: User;
+  lastMessage?: MessageWithUser;
 };

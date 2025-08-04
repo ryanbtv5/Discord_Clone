@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Hash, Volume2, Plus, ChevronDown, Settings, Mic, Headphones } from "lucide-react";
+import { Hash, Volume2, Plus, ChevronDown, Settings, Mic, Headphones, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { ServerWithChannels, Channel } from "@shared/schema";
 
@@ -9,9 +9,10 @@ interface ChannelSidebarProps {
   selectedChannelId: string | null;
   onChannelSelect: (channelId: string) => void;
   onCreateChannel: () => void;
+  onInvite: () => void;
 }
 
-export default function ChannelSidebar({ server, selectedChannelId, onChannelSelect, onCreateChannel }: ChannelSidebarProps) {
+export default function ChannelSidebar({ server, selectedChannelId, onChannelSelect, onCreateChannel, onInvite }: ChannelSidebarProps) {
   const { user } = useAuth();
   
   const textChannels = server.channels.filter(c => c.type === 'text');
@@ -24,9 +25,19 @@ export default function ChannelSidebar({ server, selectedChannelId, onChannelSel
   return (
     <div className="w-60 bg-discord-darker flex flex-col">
       {/* Server Header */}
-      <div className="h-16 border-b border-discord-darkest flex items-center justify-between px-4 hover:bg-discord-dark cursor-pointer transition-colors duration-150">
+      <div className="h-16 border-b border-discord-darkest flex items-center justify-between px-4 hover:bg-discord-dark cursor-pointer transition-colors duration-150 group">
         <h1 className="text-white font-semibold truncate">{server.name}</h1>
-        <ChevronDown className="w-5 h-5 text-discord-text-muted hover:text-white transition-colors duration-150" />
+        <div className="flex items-center space-x-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-5 h-5 text-discord-text-muted hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-150"
+            onClick={onInvite}
+          >
+            <UserPlus className="w-4 h-4" />
+          </Button>
+          <ChevronDown className="w-5 h-5 text-discord-text-muted hover:text-white transition-colors duration-150" />
+        </div>
       </div>
       
       {/* Channel List */}
@@ -110,19 +121,23 @@ export default function ChannelSidebar({ server, selectedChannelId, onChannelSel
       
       {/* User Panel */}
       <div className="h-14 bg-discord-darkest flex items-center px-2 space-x-2">
-        <img 
-          src={user?.profileImageUrl || `https://ui-avatars.com/api/?name=${user?.firstName || 'U'}&background=5865f2&color=fff`} 
-          alt="User avatar" 
-          className="w-8 h-8 rounded-full object-cover" 
-        />
-        <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium text-white truncate">
-            {user?.firstName || user?.email?.split('@')[0] || 'User'}
-          </div>
-          <div className="text-xs text-discord-text-muted truncate">
-            #{user?.id?.slice(-4) || '0000'}
-          </div>
-        </div>
+        {user && (
+          <>
+            <img 
+              src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.firstName || 'U'}&background=5865f2&color=fff`} 
+              alt="User avatar" 
+              className="w-8 h-8 rounded-full object-cover" 
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-white truncate">
+                {user.firstName || user.email?.split('@')[0] || 'User'}
+              </div>
+              <div className="text-xs text-discord-text-muted truncate">
+                #{user.id?.slice(-4) || '0000'}
+              </div>
+            </div>
+          </>
+        )}
         <Button variant="ghost" size="icon" className="p-1 rounded hover:bg-discord-darker">
           <Mic className="w-5 h-5 text-discord-text-muted hover:text-white" />
         </Button>

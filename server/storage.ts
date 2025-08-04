@@ -4,6 +4,8 @@ import {
   serverMembers,
   channels,
   messages,
+  dmConversations,
+  serverInvites,
   type User,
   type UpsertUser,
   type Server,
@@ -14,9 +16,13 @@ import {
   type InsertMessage,
   type ServerWithChannels,
   type MessageWithUser,
+  type DmConversation,
+  type DmConversationWithUser,
+  type ServerInvite,
+  type InsertServerInvite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -40,6 +46,22 @@ export interface IStorage {
   // Check permissions
   isUserInServer(userId: string, serverId: string): Promise<boolean>;
   isUserInChannel(userId: string, channelId: string): Promise<boolean>;
+  
+  // Direct message operations
+  createDmConversation(user1Id: string, user2Id: string): Promise<DmConversation>;
+  getDmConversation(user1Id: string, user2Id: string): Promise<DmConversation | undefined>;
+  getDmConversationsByUserId(userId: string): Promise<DmConversationWithUser[]>;
+  createDirectMessage(senderId: string, recipientId: string, content?: string, imageUrl?: string): Promise<Message>;
+  getDirectMessages(user1Id: string, user2Id: string): Promise<MessageWithUser[]>;
+  
+  // Server invite operations
+  createServerInvite(inviteData: InsertServerInvite): Promise<ServerInvite>;
+  getServerInviteByCode(code: string): Promise<ServerInvite | undefined>;
+  useServerInvite(code: string): Promise<void>;
+  getServerInvitesByServerId(serverId: string): Promise<ServerInvite[]>;
+  
+  // User search
+  searchUsers(query: string, excludeUserId?: string): Promise<User[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -161,6 +183,7 @@ export class DatabaseStorage implements IStorage {
         imageUrl: messages.imageUrl,
         channelId: messages.channelId,
         userId: messages.userId,
+        recipientId: messages.recipientId,
         createdAt: messages.createdAt,
         updatedAt: messages.updatedAt,
         user: {
@@ -195,6 +218,170 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(serverMembers, eq(channels.serverId, serverMembers.serverId))
       .where(and(eq(channels.id, channelId), eq(serverMembers.userId, userId)));
     return !!result;
+  }
+
+  // Direct message operations
+  async createDmConversation(user1Id: string, user2Id: string): Promise<DmConversation> {
+    // Check if conversation already exists
+    const existing = await this.getDmConversation(user1Id, user2Id);
+    if (existing) return existing;
+
+    const [conversation] = await db
+      .insert(dmConversations)
+      .values({
+        user1Id: user1Id < user2Id ? user1Id : user2Id, // Always store smaller ID first
+        user2Id: user1Id < user2Id ? user2Id : user1Id,
+      })
+      .returning();
+    return conversation;
+  }
+
+  async getDmConversation(user1Id: string, user2Id: string): Promise<DmConversation | undefined> {
+    const [conversation] = await db
+      .select()
+      .from(dmConversations)
+      .where(
+        or(
+          and(eq(dmConversations.user1Id, user1Id), eq(dmConversations.user2Id, user2Id)),
+          and(eq(dmConversations.user1Id, user2Id), eq(dmConversations.user2Id, user1Id))
+        )
+      );
+    return conversation;
+  }
+
+  async getDmConversationsByUserId(userId: string): Promise<DmConversationWithUser[]> {
+    const conversations = await db
+      .select({
+        id: dmConversations.id,
+        user1Id: dmConversations.user1Id,
+        user2Id: dmConversations.user2Id,
+        createdAt: dmConversations.createdAt,
+        updatedAt: dmConversations.updatedAt,
+        otherUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(dmConversations)
+      .innerJoin(
+        users,
+        or(
+          and(eq(dmConversations.user1Id, userId), eq(users.id, dmConversations.user2Id)),
+          and(eq(dmConversations.user2Id, userId), eq(users.id, dmConversations.user1Id))
+        )
+      )
+      .where(or(eq(dmConversations.user1Id, userId), eq(dmConversations.user2Id, userId)));
+
+    return conversations as DmConversationWithUser[];
+  }
+
+  async createDirectMessage(senderId: string, recipientId: string, content?: string, imageUrl?: string): Promise<Message> {
+    // Ensure DM conversation exists
+    await this.createDmConversation(senderId, recipientId);
+
+    const [message] = await db
+      .insert(messages)
+      .values({
+        content,
+        imageUrl,
+        userId: senderId,
+        recipientId,
+        channelId: null, // null for DMs
+      })
+      .returning();
+    return message;
+  }
+
+  async getDirectMessages(user1Id: string, user2Id: string): Promise<MessageWithUser[]> {
+    return await db
+      .select({
+        id: messages.id,
+        content: messages.content,
+        imageUrl: messages.imageUrl,
+        channelId: messages.channelId,
+        userId: messages.userId,
+        recipientId: messages.recipientId,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.userId, users.id))
+      .where(
+        and(
+          sql`${messages.channelId} IS NULL`, // DMs only
+          or(
+            and(eq(messages.userId, user1Id), eq(messages.recipientId, user2Id)),
+            and(eq(messages.userId, user2Id), eq(messages.recipientId, user1Id))
+          )
+        )
+      )
+      .orderBy(desc(messages.createdAt));
+  }
+
+  // Server invite operations
+  async createServerInvite(inviteData: InsertServerInvite): Promise<ServerInvite> {
+    const [invite] = await db
+      .insert(serverInvites)
+      .values(inviteData)
+      .returning();
+    return invite;
+  }
+
+  async getServerInviteByCode(code: string): Promise<ServerInvite | undefined> {
+    const [invite] = await db
+      .select()
+      .from(serverInvites)
+      .where(eq(serverInvites.code, code));
+    return invite;
+  }
+
+  async useServerInvite(code: string): Promise<void> {
+    await db
+      .update(serverInvites)
+      .set({
+        usedCount: sql`CAST(COALESCE(${serverInvites.usedCount}, '0') AS INTEGER) + 1`,
+      })
+      .where(eq(serverInvites.code, code));
+  }
+
+  async getServerInvitesByServerId(serverId: string): Promise<ServerInvite[]> {
+    return await db
+      .select()
+      .from(serverInvites)
+      .where(eq(serverInvites.serverId, serverId));
+  }
+
+  // User search
+  async searchUsers(query: string, excludeUserId?: string): Promise<User[]> {
+    let whereCondition = or(
+      sql`LOWER(${users.firstName}) LIKE LOWER(${`%${query}%`})`,
+      sql`LOWER(${users.lastName}) LIKE LOWER(${`%${query}%`})`,
+      sql`LOWER(${users.email}) LIKE LOWER(${`%${query}%`})`
+    );
+
+    if (excludeUserId) {
+      whereCondition = and(whereCondition, sql`${users.id} != ${excludeUserId}`);
+    }
+
+    return await db
+      .select()
+      .from(users)
+      .where(whereCondition)
+      .limit(20);
   }
 }
 
