@@ -220,6 +220,32 @@ export class DatabaseStorage implements IStorage {
     return !!result;
   }
 
+  async getServerMembers(serverId: string): Promise<Array<User & { isOwner: boolean }>> {
+    const server = await db.select().from(servers).where(eq(servers.id, serverId)).limit(1);
+    if (!server.length) return [];
+    
+    const ownerId = server[0].ownerId;
+    
+    const members = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        profileImageUrl: users.profileImageUrl,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .innerJoin(serverMembers, eq(users.id, serverMembers.userId))
+      .where(eq(serverMembers.serverId, serverId));
+
+    return members.map(member => ({
+      ...member,
+      isOwner: member.id === ownerId,
+    }));
+  }
+
   // Direct message operations
   async createDmConversation(user1Id: string, user2Id: string): Promise<DmConversation> {
     // Check if conversation already exists

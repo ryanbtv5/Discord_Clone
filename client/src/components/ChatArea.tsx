@@ -13,9 +13,10 @@ import type { Channel, Server, MessageWithUser } from "@shared/schema";
 interface ChatAreaProps {
   channel: Channel;
   server: Server;
+  onUserClick?: (user: any) => void;
 }
 
-export default function ChatArea({ channel, server }: ChatAreaProps) {
+export default function ChatArea({ channel, server, onUserClick }: ChatAreaProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState("");
@@ -251,7 +252,10 @@ export default function ChatArea({ channel, server }: ChatAreaProps) {
                         <div className="flex-1 min-w-0">
                           {showAvatar && (
                             <div className="flex items-center space-x-2 mb-1">
-                              <span className="font-medium text-white hover:underline cursor-pointer">
+                              <span 
+                                className="font-medium text-white hover:underline cursor-pointer"
+                                onClick={() => onUserClick?.(message.user)}
+                              >
                                 {message.user.firstName || message.user.email?.split('@')[0] || 'User'}
                               </span>
                               <span className="text-xs text-discord-text-light">

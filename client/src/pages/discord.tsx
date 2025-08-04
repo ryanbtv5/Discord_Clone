@@ -11,6 +11,8 @@ import StartDmModal from "@/components/StartDmModal";
 import ServerInviteModal from "@/components/ServerInviteModal";
 import CreateServerModal from "@/components/CreateServerModal";
 import CreateChannelModal from "@/components/CreateChannelModal";
+import UserProfileModal from "@/components/UserProfileModal";
+import ServerMemberList from "@/components/ServerMemberList";
 import type { Server, ServerWithChannels, Channel, User } from "@shared/schema";
 
 export default function Discord() {
@@ -24,6 +26,8 @@ export default function Discord() {
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [showStartDmModal, setShowStartDmModal] = useState(false);
   const [showServerInviteModal, setShowServerInviteModal] = useState(false);
+  const [showUserProfileModal, setShowUserProfileModal] = useState(false);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
 
   // Fetch user's servers
   const { data: servers, isLoading: serversLoading, error: serversError } = useQuery<Server[]>({
@@ -124,6 +128,11 @@ export default function Discord() {
     setShowStartDmModal(true);
   };
 
+  const handleUserClick = (user: User) => {
+    setSelectedUserForProfile(user);
+    setShowUserProfileModal(true);
+  };
+
   const handleOpenServerInvite = () => {
     setShowServerInviteModal(true);
   };
@@ -158,7 +167,7 @@ export default function Discord() {
           />
           
           {selectedDmUser ? (
-            <DirectMessageArea otherUser={selectedDmUser} />
+            <DirectMessageArea otherUser={selectedDmUser} onUserClick={handleUserClick} />
           ) : (
             <div className="flex-1 flex items-center justify-center bg-discord-dark">
               <div className="text-center">
@@ -184,6 +193,14 @@ export default function Discord() {
             <ChatArea
               channel={selectedChannel}
               server={selectedServer!}
+              onUserClick={handleUserClick}
+            />
+          )}
+          
+          {selectedServer && (
+            <ServerMemberList
+              serverId={selectedServer.id}
+              onUserClick={handleUserClick}
             />
           )}
           
@@ -225,6 +242,12 @@ export default function Discord() {
           serverName={selectedServer.name}
         />
       )}
+
+      <UserProfileModal
+        open={showUserProfileModal}
+        onClose={() => setShowUserProfileModal(false)}
+        user={selectedUserForProfile}
+      />
     </div>
   );
 }

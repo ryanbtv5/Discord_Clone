@@ -12,9 +12,10 @@ import type { MessageWithUser, User } from "@shared/schema";
 
 interface DirectMessageAreaProps {
   otherUser: User;
+  onUserClick?: (user: User) => void;
 }
 
-export default function DirectMessageArea({ otherUser }: DirectMessageAreaProps) {
+export default function DirectMessageArea({ otherUser, onUserClick }: DirectMessageAreaProps) {
   const { toast } = useToast();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
@@ -254,7 +255,10 @@ export default function DirectMessageArea({ otherUser }: DirectMessageAreaProps)
                           <div className="flex-1 min-w-0">
                             {showAvatar && (
                               <div className="flex items-center space-x-2 mb-1">
-                                <span className="font-medium text-white hover:underline cursor-pointer">
+                                <span 
+                                  className="font-medium text-white hover:underline cursor-pointer"
+                                  onClick={() => onUserClick?.(message.user)}
+                                >
                                   {message.user.firstName || message.user.email?.split('@')[0] || 'User'}
                                 </span>
                                 <span className="text-xs text-discord-text-light">

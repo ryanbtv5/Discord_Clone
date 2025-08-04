@@ -19,6 +19,11 @@ export default function StartDmModal({ open, onClose, onUserSelect }: StartDmMod
   // Search users with debouncing
   const { data: searchResults, isLoading } = useQuery<User[]>({
     queryKey: ["/api/users/search", searchQuery],
+    queryFn: async () => {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) throw new Error(`${response.status}: ${response.statusText}`);
+      return response.json();
+    },
     enabled: searchQuery.length >= 2,
     retry: false,
   });
