@@ -1,0 +1,201 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+
+  /* Discord Theme Colors */
+  --discord-dark: hsl(213, 6%, 22%);
+  --discord-darker: hsl(214, 8%, 18%);
+  --discord-darkest: hsl(216, 9%, 13%);
+  --discord-blue: hsl(235, 86%, 65%);
+  --discord-green: hsl(139, 47%, 43%);
+  --discord-yellow: hsl(38, 95%, 54%);
+  --discord-red: hsl(359, 82%, 59%);
+  --discord-text: hsl(210, 9%, 87%);
+  --discord-text-muted: hsl(211, 10%, 73%);
+  --discord-text-light: hsl(212, 9%, 56%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(235, 86%, 65%);
+  --primary-foreground: hsl(211, 100%, 99%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  
+  /* Discord specific styles */
+  .discord-dark {
+    background-color: var(--discord-dark);
+  }
+  
+  .discord-darker {
+    background-color: var(--discord-darker);
+  }
+  
+  .discord-darkest {
+    background-color: var(--discord-darkest);
+  }
+  
+  .discord-blue {
+    background-color: var(--discord-blue);
+  }
+  
+  .discord-green {
+    background-color: var(--discord-green);
+  }
+  
+  .discord-text {
+    color: var(--discord-text);
+  }
+  
+  .discord-text-muted {
+    color: var(--discord-text-muted);
+  }
+  
+  .discord-text-light {
+    color: var(--discord-text-light);
+  }
+}
+
+@layer utilities {
+  .bg-discord-dark {
+    background-color: var(--discord-dark);
+  }
+  
+  .bg-discord-darker {
+    background-color: var(--discord-darker);
+  }
+  
+  .bg-discord-darkest {
+    background-color: var(--discord-darkest);
+  }
+  
+  .bg-discord-blue {
+    background-color: var(--discord-blue);
+  }
+  
+  .bg-discord-green {
+    background-color: var(--discord-green);
+  }
+  
+  .text-discord-text {
+    color: var(--discord-text);
+  }
+  
+  .text-discord-text-muted {
+    color: var(--discord-text-muted);
+  }
+  
+  .text-discord-text-light {
+    color: var(--discord-text-light);
+  }
+  
+  .border-discord-dark {
+    border-color: var(--discord-dark);
+  }
+  
+  .border-discord-darker {
+    border-color: var(--discord-darker);
+  }
+  
+  .border-discord-darkest {
+    border-color: var(--discord-darkest);
+  }
+  
+  .hover\:bg-discord-blue:hover {
+    background-color: var(--discord-blue);
+  }
+  
+  .hover\:bg-discord-green:hover {
+    background-color: var(--discord-green);
+  }
+  
+  .hover\:border-discord-blue:hover {
+    border-color: var(--discord-blue);
+  }
+  
+  .hover\:border-discord-green:hover {
+    border-color: var(--discord-green);
+  }
+  
+  .focus\:border-discord-blue:focus {
+    border-color: var(--discord-blue);
+  }
+}
+
+/* Custom scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-discord-darkest {
+  scrollbar-color: var(--discord-darkest) transparent;
+}
+
+.scrollbar-track-transparent {
+  scrollbar-color: var(--discord-darkest) transparent;
+}
+
+/* Webkit scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--discord-darkest);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--discord-darker);
+}
