@@ -1,0 +1,63 @@
+Here’s a **Replit Agent prompt** you can use to create a **Discord clone** using Replit's full-stack capabilities (frontend + backend) and Firebase integration.
+
+---
+
+### 🧠 Replit Agent Prompt: Discord Clone App
+
+> **Prompt to enter in the Agent tool's text area when creating a new app:**
+
+---
+
+**"Create a full-stack Discord clone app with the following features:**
+
+1. **Authentication**:
+
+   * Use Firebase Authentication (email/password and Google sign-in).
+   * Show login and registration screens with form validation.
+
+2. **Server (Guild) System**:
+
+   * Users can create and join servers with names and images.
+   * Display a list of joined servers in a sidebar.
+
+3. **Channel System**:
+
+   * Each server has multiple text channels.
+   * Users can view and switch between channels.
+
+4. **Chat Functionality**:
+
+   * Real-time chat using Firebase Firestore (channel messages stored in subcollections).
+   * Support text and optional image messages (stored via Firebase Storage).
+
+5. **UI/UX**:
+
+   * Style similar to Discord with a sidebar for servers, a middle pane for channels, and a main pane for messages.
+   * Responsive layout that works on desktop and mobile.
+
+6. **Technology Stack**:
+
+   * Use React + Firebase or Next.js + Firebase for the frontend.
+   * Use Firebase Firestore, Auth, and Storage for the backend.
+   * Use Tailwind CSS or Material UI for styling.
+
+7. **Additional Features (optional)**:
+
+   * Typing indicators
+   * Emojis support
+   * Ability to delete own messages
+   * Dark mode toggle
+
+Please set up a Firebase config file and help me connect it securely to the app using `.env` for keys. Include clear folder structure (components, pages, styles, services) and Firestore rules suggestions. I want to be able to add more features later using Agent."\*\*
+
+---
+
+### ✅ What Agent will do:
+
+* Set up the project (e.g., with React, Next.js, or Vite)
+* Integrate Firebase (Auth, Firestore, Storage)
+* Scaffold the UI with reusable components
+* Include `.env` support for Firebase config
+* Generate a working MVP with chat, servers, and channels
+
+---
