@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,6 +44,9 @@ export default function SearchModal({ open, onClose, channelId, serverId }: Sear
             <Search className="w-5 h-5 mr-2" />
             Search Messages
           </DialogTitle>
+          <DialogDescription className="text-discord-text-muted">
+            Search for messages in this channel
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSearch} className="space-y-4">

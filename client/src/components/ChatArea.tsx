@@ -198,10 +198,28 @@ export default function ChatArea({ channel, server, onUserClick, onToggleMembers
           )}
         </div>
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" onClick={onToggleMembers}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggleMembers}
+            className="hover:bg-discord-darkest"
+          >
             <Users className="w-5 h-5 text-discord-text-muted hover:text-white" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onOpenSearch}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => {
+              console.log('Search button clicked', onOpenSearch);
+              if (onOpenSearch) {
+                onOpenSearch();
+              } else {
+                console.error('onOpenSearch function not provided');
+              }
+            }}
+            className="hover:bg-discord-darkest"
+            title="Search messages"
+          >
             <Search className="w-5 h-5 text-discord-text-muted hover:text-white" />
           </Button>
         </div>

@@ -145,6 +145,7 @@ export default function Discord() {
   };
 
   const handleOpenSearch = () => {
+    console.log('Opening search modal');
     setShowSearchModal(true);
   };
 
