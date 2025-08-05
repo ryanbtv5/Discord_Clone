@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Hash, Volume2, Plus, ChevronDown, Settings, Mic, Headphones, UserPlus } from "lucide-react";
+import { Hash, Plus, ChevronDown, Settings, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import type { ServerWithChannels, Channel } from "@shared/schema";
 
@@ -16,7 +16,6 @@ export default function ChannelSidebar({ server, selectedChannelId, onChannelSel
   const { user } = useAuth();
   
   const textChannels = server.channels.filter(c => c.type === 'text');
-  const voiceChannels = server.channels.filter(c => c.type === 'voice');
 
   const handleLogout = () => {
     window.location.href = '/api/logout';
@@ -86,37 +85,7 @@ export default function ChannelSidebar({ server, selectedChannelId, onChannelSel
           ))}
         </div>
         
-        {/* Voice Channels */}
-        {voiceChannels.length > 0 && (
-          <div className="px-2 py-4">
-            <div className="flex items-center justify-between px-2 pb-1">
-              <div className="flex items-center">
-                <ChevronDown className="w-3 h-3 text-discord-text-muted mr-1" />
-                <span className="text-discord-text-muted text-xs font-semibold uppercase tracking-wide">Voice Channels</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-4 h-4 text-discord-text-muted hover:text-white"
-                onClick={onCreateChannel}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {voiceChannels.map((channel) => (
-              <div
-                key={channel.id}
-                className="px-2 py-1 rounded hover:bg-discord-dark cursor-pointer transition-colors duration-150 group flex items-center"
-              >
-                <Volume2 className="w-5 h-5 text-discord-text-muted mr-2 group-hover:text-discord-text" />
-                <span className="text-discord-text-muted group-hover:text-white text-sm">
-                  {channel.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+
       </ScrollArea>
       
       {/* User Panel */}
@@ -138,12 +107,7 @@ export default function ChannelSidebar({ server, selectedChannelId, onChannelSel
             </div>
           </>
         )}
-        <Button variant="ghost" size="icon" className="p-1 rounded hover:bg-discord-darker">
-          <Mic className="w-5 h-5 text-discord-text-muted hover:text-white" />
-        </Button>
-        <Button variant="ghost" size="icon" className="p-1 rounded hover:bg-discord-darker">
-          <Headphones className="w-5 h-5 text-discord-text-muted hover:text-white" />
-        </Button>
+
         <Button 
           variant="ghost" 
           size="icon" 

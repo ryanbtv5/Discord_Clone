@@ -375,20 +375,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get user by ID
-  app.get('/api/users/:userId', isAuthenticated, async (req: any, res) => {
+  // Search messages in a channel
+  app.get('/api/channels/:channelId/search/:query', isAuthenticated, async (req: any, res) => {
     try {
-      const { userId } = req.params;
-      const user = await storage.getUser(userId);
+      const userId = req.user.claims.sub;
+      const { channelId, query } = req.params;
       
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+      // Check if user has access to this channel
+      const hasAccess = await storage.isUserInChannel(userId, channelId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
       }
       
-      res.json(user);
+      if (!query || query.length < 3) {
+        return res.json([]);
+      }
+      
+      const messages = await storage.searchMessagesInChannel(channelId, query);
+      res.json(messages);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
+      console.error("Error searching messages:", error);
+      res.status(500).json({ message: "Failed to search messages" });
     }
   });
 

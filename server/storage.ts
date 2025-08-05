@@ -22,7 +22,7 @@ import {
   type InsertServerInvite,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, sql } from "drizzle-orm";
+import { eq, and, desc, or, sql, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -202,6 +202,37 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(messages.createdAt));
   }
 
+  async searchMessagesInChannel(channelId: string, query: string): Promise<MessageWithUser[]> {
+    return await db
+      .select({
+        id: messages.id,
+        content: messages.content,
+        imageUrl: messages.imageUrl,
+        channelId: messages.channelId,
+        userId: messages.userId,
+        recipientId: messages.recipientId,
+        createdAt: messages.createdAt,
+        updatedAt: messages.updatedAt,
+        user: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+        },
+      })
+      .from(messages)
+      .innerJoin(users, eq(messages.userId, users.id))
+      .where(and(
+        eq(messages.channelId, channelId),
+        ilike(messages.content, `%${query}%`)
+      ))
+      .orderBy(desc(messages.createdAt))
+      .limit(50);
+  }
+
   // Permission checks
   async isUserInServer(userId: string, serverId: string): Promise<boolean> {
     const [member] = await db
@@ -301,9 +332,46 @@ export class DatabaseStorage implements IStorage {
           and(eq(dmConversations.user2Id, userId), eq(users.id, dmConversations.user1Id))
         )
       )
-      .where(or(eq(dmConversations.user1Id, userId), eq(dmConversations.user2Id, userId)));
+      .where(or(eq(dmConversations.user1Id, userId), eq(dmConversations.user2Id, userId)))
+      .orderBy(desc(dmConversations.updatedAt));
 
-    return conversations as DmConversationWithUser[];
+    // Get the last message for each conversation
+    const conversationsWithLastMessage = await Promise.all(
+      conversations.map(async (conversation) => {
+        const [lastMessage] = await db
+          .select({
+            id: messages.id,
+            content: messages.content,
+            imageUrl: messages.imageUrl,
+            createdAt: messages.createdAt,
+            user: {
+              id: users.id,
+              firstName: users.firstName,
+              email: users.email,
+            },
+          })
+          .from(messages)
+          .innerJoin(users, eq(messages.userId, users.id))
+          .where(
+            and(
+              or(
+                and(eq(messages.userId, conversation.user1Id), eq(messages.recipientId, conversation.user2Id)),
+                and(eq(messages.userId, conversation.user2Id), eq(messages.recipientId, conversation.user1Id))
+              ),
+              eq(messages.channelId, null) // DM messages have null channelId
+            )
+          )
+          .orderBy(desc(messages.createdAt))
+          .limit(1);
+
+        return {
+          ...conversation,
+          lastMessage: lastMessage || null,
+        };
+      })
+    );
+
+    return conversationsWithLastMessage as DmConversationWithUser[];
   }
 
   async createDirectMessage(senderId: string, recipientId: string, content?: string, imageUrl?: string): Promise<Message> {

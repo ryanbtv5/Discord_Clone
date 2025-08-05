@@ -14,9 +14,11 @@ interface ChatAreaProps {
   channel: Channel;
   server: Server;
   onUserClick?: (user: any) => void;
+  onToggleMembers?: () => void;
+  onOpenSearch?: () => void;
 }
 
-export default function ChatArea({ channel, server, onUserClick }: ChatAreaProps) {
+export default function ChatArea({ channel, server, onUserClick, onToggleMembers, onOpenSearch }: ChatAreaProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState("");
@@ -196,16 +198,10 @@ export default function ChatArea({ channel, server, onUserClick }: ChatAreaProps
           )}
         </div>
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon">
-            <Video className="w-5 h-5 text-discord-text-muted hover:text-white" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Phone className="w-5 h-5 text-discord-text-muted hover:text-white" />
-          </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={onToggleMembers}>
             <Users className="w-5 h-5 text-discord-text-muted hover:text-white" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={onOpenSearch}>
             <Search className="w-5 h-5 text-discord-text-muted hover:text-white" />
           </Button>
         </div>

@@ -57,7 +57,7 @@ export const serverMembers = pgTable("server_members", {
 export const channels = pgTable("channels", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name", { length: 100 }).notNull(),
-  type: varchar("type", { length: 20 }).default("text"), // text, voice
+  type: varchar("type", { length: 20 }).default("text"), // text only
   description: text("description"),
   serverId: varchar("server_id").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

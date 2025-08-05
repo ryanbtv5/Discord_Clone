@@ -12,6 +12,7 @@ import ServerInviteModal from "@/components/ServerInviteModal";
 import CreateServerModal from "@/components/CreateServerModal";
 import CreateChannelModal from "@/components/CreateChannelModal";
 import UserProfileModal from "@/components/UserProfileModal";
+import SearchModal from "@/components/SearchModal";
 import ServerMemberList from "@/components/ServerMemberList";
 import type { Server, ServerWithChannels, Channel, User } from "@shared/schema";
 
@@ -28,6 +29,8 @@ export default function Discord() {
   const [showServerInviteModal, setShowServerInviteModal] = useState(false);
   const [showUserProfileModal, setShowUserProfileModal] = useState(false);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [showMembersList, setShowMembersList] = useState(true);
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
   // Fetch user's servers
   const { data: servers, isLoading: serversLoading, error: serversError } = useQuery<Server[]>({
@@ -137,6 +140,14 @@ export default function Discord() {
     setShowServerInviteModal(true);
   };
 
+  const handleToggleMembers = () => {
+    setShowMembersList(!showMembersList);
+  };
+
+  const handleOpenSearch = () => {
+    setShowSearchModal(true);
+  };
+
   const selectedChannel = selectedServer?.channels.find(c => c.id === selectedChannelId);
 
   if (serversLoading) {
@@ -194,10 +205,12 @@ export default function Discord() {
               channel={selectedChannel}
               server={selectedServer!}
               onUserClick={handleUserClick}
+              onToggleMembers={handleToggleMembers}
+              onOpenSearch={handleOpenSearch}
             />
           )}
           
-          {selectedServer && (
+          {selectedServer && showMembersList && (
             <ServerMemberList
               serverId={selectedServer.id}
               onUserClick={handleUserClick}
@@ -248,6 +261,15 @@ export default function Discord() {
         onClose={() => setShowUserProfileModal(false)}
         user={selectedUserForProfile}
       />
+      
+      {selectedChannel && selectedServer && (
+        <SearchModal
+          open={showSearchModal}
+          onClose={() => setShowSearchModal(false)}
+          channelId={selectedChannel.id}
+          serverId={selectedServer.id}
+        />
+      )}
     </div>
   );
 }
